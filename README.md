@@ -36,26 +36,37 @@ USB power supply: Take any unused USB cable or get one from local thrift stores.
 
 I followed the same wiring setup in this [website](https://www.hackster.io/ben-eagan/raspberry-pi-automated-plant-watering-with-website-8af2dc)
 
-![Wiring](https://github.com/mahesh-saravana/blobstore/blob/master/images/circuit_wiring.png)
+![Circuit diagram](static/img/circuit_diagram.svg)
 
-Water Sensor - plug the positive lead from the water sensor to pin 2, and the negative lead to pin 6. Plug the signal wire (yellow) to pin 8.
+All pin numbers are the Raspberry Pi's **physical (BOARD) pin numbers**, which is what `irrigation_main.py` uses (`GPIO.setmode(GPIO.BOARD)`).
 
-Relay - Plug the positive lead from pin 7 to IN1 on the Relay Board. Also connect Pin 2 to VCC, and Pin 5 to GND on the Relay board.
+| From | To (Raspberry Pi) | Wire |
+|------|-------------------|------|
+| Soil moisture sensor VCC | Pin 1 (3.3V) | Magenta |
+| Soil moisture sensor GND | Pin 6 (GND) | Black |
+| Soil moisture sensor DO (signal) | Pin 8 (GPIO14) | Yellow |
+| Relay VCC | Pin 2 (5V) | Red |
+| Relay IN1 | Pin 7 (GPIO4) | Blue |
+| Relay GND | Pin 9 (GND) | Black |
 
-Pump - Connect your pump to a power source, run the black ground wire between slots B and C of relay module 1 (when the RPi sends a LOW signal of 0v to pin 1, this will close the circuit turning on the pump).
+> **Power the sensor from 3.3V, not 5V.** The Pi's GPIO pins only handle 3.3V. If the sensor board runs on 5V, its DO signal goes out at 5V and can damage pin 8 over time. Most soil moisture boards (LM393 comparator) work fine on 3.3V.
+
+Pump - Connect the pump's + lead to the + of the 5V USB power supply. Run the pump's − lead to **COM** on relay 1, and the power supply's − to **NO** on relay 1. When the Pi pulls pin 7 LOW, the relay closes COM–NO and the pump runs. The program keeps it on for 7 seconds.
+
+A [Fritzing breadboard view](static/img/wiring.png) of the same setup is also available.
 
 
 # Coding
 
-## irrigation_app.py
+## irrigation_main.py
 
 File contains the program to read the moisture sensor values, start and stop the pump, store the logs and send text message if watered. 
 
 ## Scheduling
 
-I used linux crontab to schedule this program. scheduled to execute the irrigation_app.py for every 4 hours. Choose a schedule suits your needs. 
+I used linux crontab to schedule this program. scheduled to execute the irrigation_main.py for every 4 hours. Choose a schedule suits your needs. 
 
-0 */4 * * * /usr/bin/python3 /home/pi/Documents/irigation_system/irrigation_app.py
+0 */4 * * * /usr/bin/python3 /home/pi/Documents/irigation_system/irrigation_main.py
 
 
 
